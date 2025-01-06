@@ -55,7 +55,7 @@ export async function getEstimatedBusTime(cityID: string, stopID: string): Promi
     }
   );
 
-  let data: getEstimatedBusTimeResponse= request.data;
+  const data: getEstimatedBusTimeResponse= request.data;
 
   // Store in cache
   cache.set(cacheKey, data);

@@ -1,8 +1,10 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, MouseEventHandler } from "react";
 import { RealtimeClient } from "@openai/realtime-api-beta";
+import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from "../lib/wavtools";
-
-import { useConfig } from "../context/useConfig";
+import useConfig from "../context/useConfig";
+import useLog from "../context/useLog";
+import { getEstimatedBusTime } from "../utils/getSttnAcctoArvlPrearngeInfoList";
 
 const AudioChat = () => {
   // Configure the refs with the options you specified
@@ -23,7 +25,8 @@ const AudioChat = () => {
 
   const startTimeRef = useRef<string | null>(null);
 
-  const config = useConfig();
+  const { cityID, stationID } = useConfig();
+  const { setItems } = useLog();
 
   const connectConversation = useCallback(async () => {
     const client = clientRef.current;
@@ -45,24 +48,40 @@ const AudioChat = () => {
 
     // Connect to the Realtime API via the relay
     await client.connect();
-
-    // Send audio data directly to server with server-side voice activity detection
-    await wavRecorder.record((data) => {
-      client.appendInputAudio(data.mono);
-    });
   }, []);
+
+  const startRecording: MouseEventHandler = async (e) => {
+    e.preventDefault();
+    const client = clientRef.current;
+    const wavRecorder = wavRecorderRef.current;
+    const wavStreamPlayer = wavStreamPlayerRef.current;
+    const trackSampleOffset = await wavStreamPlayer.interrupt();
+    if (trackSampleOffset?.trackId) {
+      const { trackId, offset } = trackSampleOffset;
+      await client.cancelResponse(trackId, offset);
+    }
+    await wavRecorder.record((data) => client.appendInputAudio(data.mono));
+  };
+
+  /**
+   * In push-to-talk mode, stop recording
+   */
+  const stopRecording: MouseEventHandler = async (e) => {
+    e.preventDefault();
+    const client = clientRef.current;
+    const wavRecorder = wavRecorderRef.current;
+    await wavRecorder.pause();
+    client.createResponse();
+  };
 
   useEffect(() => {
     const client = clientRef.current;
 
     client.updateSession({
       instructions:
-        '당신은 버스 안내기입니다.'
+        '당신은 버스 안내기입니다. '
       ,
-      turn_detection: {
-        type: 'server_vad',
-        threshold: 0.7,
-      },
+      input_audio_transcription: { model: 'whisper-1' }
     });
   }, []);
 
@@ -76,26 +95,43 @@ const AudioChat = () => {
       client.removeTool(tool);
     });
 
+    
+
     // 메뉴 확인 툴
     client.addTool(
       {
-        name: 'Get Bus Arrival',
-        description: "Get buses' arrival time left=",
+        name: 'get_bus_arrival',
+        description: "Get buses' arrival time left",
         parameters: {
           type: 'object',
           properties: {
-            line_no: 'string'
+            line_no: {
+              type: 'string',
+              description: 'Desired line number to filter the result. Returns all lines when omitted.'
+            },
           },
           required: [],
         },
-      },
-      async () => {
-        
+      }, async ({ line_no }: { line_no?: string }) => {
+        console.log("Function Call: get_bus_arrival");
 
-        return '';
+        const apiResponse = await getEstimatedBusTime(cityID ?? '', stationID ?? '');
+
+        const lines = apiResponse.response.body.items.item;
+        let result;
+        if (line_no) {
+          const filtered_line = lines.filter((v) => v.routeno.includes(line_no));
+          result = filtered_line.map((line) => `${line.routeno} - 약 ${Math.round(line.arrtime/60)}분 후 도착`);
+        } else {
+          result = lines.map((line) => `${line.routeno} - 약 ${Math.round(line.arrtime/60)}분 후 도착`);
+        }
+        console.log("Result:", result);
+        return result.join('\n');
       }
     );
-  }, []);
+
+    console.log(client.tools);
+  }, [cityID, stationID]);
 
   useEffect(() => {
     const client = clientRef.current;
@@ -110,6 +146,7 @@ const AudioChat = () => {
       }
     });
     client.on('conversation.updated', async ({ item, delta }: { item: ItemType, delta: ItemContentDeltaType }) => {
+      const items = client.conversation.getItems();
       if (delta?.audio) {
         wavStreamPlayer.add16BitPCM(delta.audio, item.id);
       }
@@ -122,13 +159,19 @@ const AudioChat = () => {
         );
         item.formatted.file = wavFile;
       }
+      setItems(items);
     });
-  }, []);
+
+    setItems(client.conversation.getItems());
+  }, [setItems]);
 
   return (
-    <div>
+    <div >
       <button onClick={connectConversation} disabled={clientRef.current.isConnected()}>
         {clientRef.current.isConnected() ? 'Connected' : 'Connect to Audio Chat'}
+      </button>
+      <button onMouseDown={startRecording} onMouseUp={stopRecording}>
+        Click here to speak [ PTT ]
       </button>
     </div>
   );

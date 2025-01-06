@@ -5,6 +5,7 @@ import StationSelector from "./components/stationSelector";
 import AudioChat from "./components/audiochat";
 import { estimatedBusTimeItem, getEstimatedBusTime } from "./utils/getSttnAcctoArvlPrearngeInfoList";
 import useConfig from "./context/useConfig";
+import useLog from "./context/useLog";
 
 const BusInfoUI = () => {
   const rowsPerPage = 5;
@@ -72,6 +73,7 @@ const BusInfoUI = () => {
             ))}
           </tbody>
         </table>
+        <AudioChat />
       </div>
       <div className="mt-4 text-center">
         <p className="text-gray-600">
@@ -82,14 +84,75 @@ const BusInfoUI = () => {
   );
 };
 
+function LogConsole() {
+  const { items } = useLog();
+
+  return (
+    <div className="overflow-y-scroll h-1/2" data-conversation-content>
+      {!items.length && `awaiting connection...`}
+      {items.map((conversationItem) => {
+        return (
+          <div className="conversation-item" key={conversationItem.id}>
+            <div className={`speaker ${conversationItem.role || ''}`}>
+              <div>
+                {(
+                  conversationItem.role || conversationItem.type
+                ).replaceAll('_', ' ')}
+              </div>
+            </div>
+            <div className='speaker-content'>
+              {/* tool response */}
+              {conversationItem.type === 'function_call_output' && (
+                <div>{conversationItem.formatted.output}</div>
+              )}
+              {/* tool call */}
+              {!!conversationItem.formatted.tool && (
+                <div>
+                  {conversationItem.formatted.tool.name}(
+                  {conversationItem.formatted.tool.arguments})
+                </div>
+              )}
+              {!conversationItem.formatted.tool &&
+                conversationItem.role === 'user' && (
+                  <div>
+                    {conversationItem.formatted.transcript ||
+                      (conversationItem.formatted.audio?.length
+                        ? '(awaiting transcript)'
+                        : conversationItem.formatted.text ||
+                          '(item sent)')}
+                  </div>
+                )}
+              {!conversationItem.formatted.tool &&
+                conversationItem.role === 'assistant' && (
+                  <div>
+                    {conversationItem.formatted.transcript ||
+                      conversationItem.formatted.text ||
+                      '(truncated)'}
+                  </div>
+                )}
+              {conversationItem.formatted.file && (
+                <audio
+                  src={conversationItem.formatted.file.url}
+                  controls
+                />
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  )
+}
+
 export default function Home() {
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start h-full aspect-[9/16]">
         <BusInfoUI />
       </main>
       <aside className="h-full grow">
         <StationSelector />
+        <LogConsole />
       </aside>
     </div>
   );
