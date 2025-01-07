@@ -17,8 +17,8 @@ const BusInfoUI = () => {
   const totalPages = Math.ceil(arrivals.length / rowsPerPage);
 
   useEffect(() => {
-    if (cityID && stationID) {
-      (async () => {
+    async function fetch() {
+      if (cityID && stationID) {
         const apiResponse = await getEstimatedBusTime(cityID, stationID);
         
         let data = apiResponse.response.body.items.item;
@@ -31,8 +31,16 @@ const BusInfoUI = () => {
 
         console.log(data);
         setArrivals(data ?? []);
-      })();
+      }
     }
+
+    fetch();
+
+    const busFetchInterval = setInterval(fetch, 30000); // 30 sec
+
+    return () => {
+      clearInterval(busFetchInterval);
+    };
   }, [cityID, stationID]);
 
   useEffect(() => {
@@ -103,7 +111,7 @@ function LogConsole() {
             <div className='speaker-content'>
               {/* tool response */}
               {conversationItem.type === 'function_call_output' && (
-                <div>{conversationItem.formatted.output}</div>
+                <div>{conversationItem.formatted.output?.replaceAll('\n', '<br>')}</div>
               )}
               {/* tool call */}
               {!!conversationItem.formatted.tool && (
