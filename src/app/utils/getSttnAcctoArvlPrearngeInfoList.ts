@@ -50,12 +50,30 @@ export async function getEstimatedBusTime(cityID: string, stopID: string): Promi
         serviceKey: process.env.DATAGOKR_KEY,
         nodeId: stopID,
         cityCode: cityID,
+        numOfRows: 30,
         _type: 'json',
       },
     }
   );
 
-  const data: getEstimatedBusTimeResponse= request.data;
+  const data: getEstimatedBusTimeResponse = request.data;
+
+  if (data.response.body.items.item) {
+    // Filter items to keep only the lowest arrtime for each routeid
+    const filteredItems = Object.values(
+      data.response.body.items.item.reduce((acc, curr) => {
+        if (!acc[curr.routeid] || acc[curr.routeid].arrtime > curr.arrtime) {
+          acc[curr.routeid] = curr;
+        }
+        return acc;
+      }, {} as Record<string, estimatedBusTimeItem>)
+    );
+  
+    // Update the response with the filtered items
+    data.response.body.items.item = filteredItems;
+  } else {
+    data.response.body.items.item = [];
+  }
 
   // Store in cache
   cache.set(cacheKey, data);
