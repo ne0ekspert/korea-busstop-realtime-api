@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback, MouseEventHandler } from "react";
+import { useEffect, useRef, useCallback, MouseEventHandler } from "react";
 import { RealtimeClient } from "@openai/realtime-api-beta";
 import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
 import { WavRecorder, WavStreamPlayer } from "../lib/wavtools";
@@ -78,8 +78,8 @@ const AudioChat = () => {
     const client = clientRef.current;
 
     client.updateSession({
-      instructions:
-        '당신은 버스 안내기입니다. '
+instructions:
+  '당신은 실시간 버스 도착 정보를 제공하고 사용자 문의에 응답하는 버스 안내원입니다.'
       ,
       input_audio_transcription: { model: 'whisper-1' }
     });
@@ -95,9 +95,7 @@ const AudioChat = () => {
       client.removeTool(tool);
     });
 
-    
-
-    // 메뉴 확인 툴
+    // 버스 도착 정보 툴
     client.addTool(
       {
         name: 'get_bus_arrival',
@@ -117,16 +115,23 @@ const AudioChat = () => {
 
         const apiResponse = await getEstimatedBusTime(cityID ?? '', stationID ?? '');
 
+        console.log(apiResponse);
+
         const lines = apiResponse.response.body.items.item;
         let result;
         if (line_no) {
-          const filtered_line = lines.filter((v) => v.routeno.includes(line_no));
-          result = filtered_line.map((line) => `${line.routeno} - 약 ${Math.round(line.arrtime/60)}분 후 도착`);
+          if (lines.map((v) => v.routeno.toString()).includes(line_no)) {
+            const filtered_line = lines.filter((v) => v.routeno.toString().includes(line_no));
+            result = filtered_line.map((line) => `${line.routeno} - 약 ${Math.round(line.arrtime/60)}분 후 도착`);
+
+            console.log("Result:", result);
+            return result.join('\n');
+          } else {
+            return "Provided line number does not pass this station.";
+          }
         } else {
           result = lines.map((line) => `${line.routeno} - 약 ${Math.round(line.arrtime/60)}분 후 도착`);
         }
-        console.log("Result:", result);
-        return result.join('\n');
       }
     );
 

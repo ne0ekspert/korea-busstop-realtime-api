@@ -72,7 +72,7 @@ export async function getEstimatedBusTime(cityID: string, stopID: string): Promi
     // Update the response with the filtered items
     data.response.body.items.item = filteredItems;
   } else {
-    data.response.body.items.item = [];
+    data.response.body.items = { item: [] };
   }
 
   // Store in cache
