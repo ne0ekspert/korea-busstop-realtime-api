@@ -5,6 +5,8 @@ import { WavRecorder, WavStreamPlayer } from "../lib/wavtools";
 import useConfig from "../context/useConfig";
 import useLog from "../context/useLog";
 import { getEstimatedBusTime } from "../utils/getSttnAcctoArvlPrearngeInfoList";
+import { requestOverpass } from "../utils/overpassRequest";
+import { getRoute } from "../utils/graphHopperRequest";
 
 const AudioChat = () => {
   // Configure the refs with the options you specified
@@ -25,7 +27,7 @@ const AudioChat = () => {
 
   const startTimeRef = useRef<string | null>(null);
 
-  const { cityID, stationID } = useConfig();
+  const { cityID, stationID, latitude, longitude } = useConfig();
   const { setItems } = useLog();
 
   const connectConversation = useCallback(async () => {
@@ -135,8 +137,68 @@ instructions:
       }
     );
 
+    client.addTool(
+  {
+      name: 'get_route',
+      description: 'Get route instruction to the destination. POIs will be searched using Overpass API.',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            description: 'Name of destination'
+          },
+          amenity: {
+            type: 'string',
+            enum: [
+              "restaurant", 
+              "cafe", 
+              "atm", 
+              "bank", 
+              "hospital", 
+              "pharmacy", 
+              "school", 
+              "library", 
+              "parking", 
+              "supermarket", 
+              "police", 
+              "fire_station", 
+              "post_office", 
+              "theatre", 
+              "cinema"
+            ]
+          },
+          tourism: {
+            type: 'string',
+            enum: ['hotel', 'motel', 'guest_house', 'hostel', 'camp_site', 'chalet', 'caravan_site']
+          }
+        }
+      }
+    }, async ({ name, amenity, tourism }: { name: string, amenity: string, tourism: string }) => {
+      if (!(name || amenity || tourism)) {
+        return "Name or amenity of POI is needed.";
+      }
+
+      const POIlist = await requestOverpass(name, amenity, tourism, 1000);
+      
+      console.log(POIlist);
+      
+      if (POIlist.length === 0) {
+        return "No search result found";
+      }
+
+      const routing = await getRoute(latitude ?? 38, longitude ?? 128, POIlist[0].lat, POIlist[0].lon);
+
+      const instructions = routing.paths[0].instructions.map((v) => `- ${v.text}`).join('\n');
+
+      console.log(instructions);
+
+      return `Route to ${POIlist[0].tags.name}
+      ${instructions}`;
+    });
+
     console.log(client.tools);
-  }, [cityID, stationID]);
+  }, [cityID, stationID, latitude, longitude]);
 
   useEffect(() => {
     const client = clientRef.current;

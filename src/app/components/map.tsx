@@ -53,6 +53,7 @@ const BusStationMarkers = () => {
               console.log('Marker clicked', station.citycode, station.nodeid);
               config.setCityID(station.citycode.toString());
               config.setStationID(station.nodeid);
+              config.setLatLong(station.gpslati, station.gpslong);
             }
           }}
           title={`${station.nodeid} | ${station.nodenm}`}
