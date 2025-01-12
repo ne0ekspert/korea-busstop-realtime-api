@@ -53,16 +53,21 @@ const BusInfoUI = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-6">Bus Information</h1>
+      <h1 className="text-2xl font-bold text-center mb-6">
+        {arrivals.length > 0 ?
+          arrivals[0].nodenm
+          :
+          '버스 정보'
+        }
+      </h1>
       <div className="overflow-x-auto">
         <table className="table-auto w-full border-collapse border border-gray-200">
           <thead>
             <tr className="">
-              <th className="border border-gray-300 px-4 py-2 text-left">Route No</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Station Name</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Arriving In</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Vehicle Type</th>
-              <th className="border border-gray-300 px-4 py-2 text-left">Stations Left</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">노선 번호</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">도착 시간</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">버스 종류</th>
+              <th className="border border-gray-300 px-4 py-2 text-left">남은 정류소</th>
             </tr>
           </thead>
           <tbody>
@@ -71,9 +76,13 @@ const BusInfoUI = () => {
                 key={index}
               >
                 <td className="border border-gray-300 px-4 py-2">{bus.routeno}</td>
-                <td className="border border-gray-300 px-4 py-2">{bus.nodenm}</td>
                 <td className="border border-gray-300 px-4 py-2">
-                  {`Approx. ${Math.round(bus.arrtime / 60)} min`}
+                  {
+                    Math.round(bus.arrtime / 60) == 0 ?
+                      '곧 도착'
+                      :
+                      `약 ${Math.round(bus.arrtime / 60)} 분`
+                  }
                 </td>
                 <td className="border border-gray-300 px-4 py-2">{bus.vehicletp}</td>
                 <td className="border border-gray-300 px-4 py-2">{bus.arrprevstationcnt}</td>
