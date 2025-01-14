@@ -1,9 +1,13 @@
-import { useEffect, useRef, useCallback, MouseEventHandler } from "react";
+import { useEffect, useRef, useCallback, type MouseEventHandler } from "react";
 import { RealtimeClient } from "@openai/realtime-api-beta";
-import { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
+import type { ItemType } from '@openai/realtime-api-beta/dist/lib/client.js';
+import type { ItemContentDeltaType } from '@openai/realtime-api-beta/dist/lib/conversation';
+
 import { WavRecorder, WavStreamPlayer } from "../lib/wavtools";
+
 import useConfig from "../context/useConfig";
 import useLog from "../context/useLog";
+
 import { getEstimatedBusTime } from "../utils/getSttnAcctoArvlPrearngeInfoList";
 import { requestOverpass } from "../utils/overpassRequest";
 import { getRoute } from "../utils/graphHopperRequest";
@@ -179,7 +183,7 @@ instructions:
         return "Name or amenity of POI is needed.";
       }
 
-      const POIlist = await requestOverpass(name, amenity, tourism, 1000);
+      const POIlist = await requestOverpass(name, amenity, tourism, 5000);
       
       console.log(POIlist);
       
