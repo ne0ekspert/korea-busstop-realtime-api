@@ -37,11 +37,6 @@ interface getEstimatedBusTimeResponse {
 export async function getEstimatedBusTime(cityID: string, stopID: string): Promise<getEstimatedBusTimeResponse> {
   const cacheKey = `stopID-${stopID}`;
 
-  // Check cache
-  if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) as getEstimatedBusTimeResponse; // Return cached data
-  }
-
   // Fetch data if not in cache
   const request = await axios.get(
     'http://apis.data.go.kr/1613000/ArvlInfoInqireService/getSttnAcctoArvlPrearngeInfoList',

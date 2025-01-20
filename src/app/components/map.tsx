@@ -6,7 +6,7 @@ import L from 'leaflet';
 import { MapContainer, Marker, TileLayer, useMap } from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
-import { getNearStations, nearStationsItem } from "../utils/getSttnAcctoArvlPrearngeInfoList";
+import { getNearStations, nearStationsItem } from "../utils/datagokrRequest";
 import useConfig from "../context/useConfig";
 
 const BusStationMarkers = () => {

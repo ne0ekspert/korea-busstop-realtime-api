@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from 'next/navigation'
 import StationSelector from "./components/stationSelector";
 import AudioChat from "./components/audiochat";
-import { estimatedBusTimeItem, getEstimatedBusTime } from "./utils/getSttnAcctoArvlPrearngeInfoList";
+import { estimatedBusTimeItem, getEstimatedBusTime } from "./utils/datagokrRequest";
 import useConfig from "./context/useConfig";
 import useLog from "./context/useLog";
 

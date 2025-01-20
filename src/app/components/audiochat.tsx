@@ -8,7 +8,7 @@ import { WavRecorder, WavStreamPlayer } from "../lib/wavtools";
 import useConfig from "../context/useConfig";
 import useLog from "../context/useLog";
 
-import { getEstimatedBusTime } from "../utils/getSttnAcctoArvlPrearngeInfoList";
+import { getEstimatedBusTime } from "../utils/datagokrRequest";
 import { requestOverpass } from "../utils/overpassRequest";
 import { getRoute } from "../utils/graphHopperRequest";
 
