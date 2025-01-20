@@ -143,64 +143,65 @@ const AudioChat = () => {
     );
 
     client.addTool(
-  {
-      name: 'get_route',
-      description: 'Get route instruction to the destination. POIs will be searched using Overpass API.',
-      parameters: {
-        type: 'object',
-        properties: {
-          name: {
-            type: 'string',
-            description: 'Name of destination'
-          },
-          amenity: {
-            type: 'string',
-            enum: [
-              "restaurant", 
-              "cafe", 
-              "atm", 
-              "bank", 
-              "hospital", 
-              "pharmacy", 
-              "school", 
-              "library", 
-              "parking", 
-              "supermarket", 
-              "police", 
-              "fire_station", 
-              "post_office", 
-              "theatre", 
-              "cinema"
-            ]
-          },
-          tourism: {
-            type: 'string',
-            enum: ['hotel', 'motel', 'guest_house', 'hostel', 'camp_site', 'chalet', 'caravan_site']
+      {
+        name: 'get_route',
+        description: 'Get route instruction to the destination. POIs will be searched using Overpass API.',
+        parameters: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Name of destination'
+            },
+            amenity: {
+              type: 'string',
+              enum: [
+                "restaurant", 
+                "cafe", 
+                "atm", 
+                "bank", 
+                "hospital", 
+                "pharmacy", 
+                "school", 
+                "library", 
+                "parking", 
+                "supermarket", 
+                "police", 
+                "fire_station", 
+                "post_office", 
+                "theatre", 
+                "cinema"
+              ]
+            },
+            tourism: {
+              type: 'string',
+              enum: ['hotel', 'motel', 'guest_house', 'hostel', 'camp_site', 'chalet', 'caravan_site']
+            }
           }
         }
+      }, async ({ name, amenity, tourism }: { name: string, amenity: string, tourism: string }) => {
+        if (!(name || amenity || tourism)) {
+          return "Name or amenity of POI is required.";
+        }
+
+        const POIlist = await requestOverpass(name, amenity, tourism, 5000);
+        
+        console.log(POIlist);
+        
+        if (POIlist.length === 0) {
+          return "No search result found";
+        }
+
+        const routing = await getRoute(latitude ?? 38, longitude ?? 128, POIlist[0].lat, POIlist[0].lon);
+
+        const instructions = routing.paths[0].instructions.map((v) => `- ${v.text}`).join('\n');
+
+        console.log(instructions);
+
+        return `Route Instruction
+        ${instructions}`;
       }
-    }, async ({ name, amenity, tourism }: { name: string, amenity: string, tourism: string }) => {
-      if (!(name || amenity || tourism)) {
-        return "Name or amenity of POI is required.";
-      }
-
-      const POIlist = await requestOverpass(name, amenity, tourism, 5000);
-      
-      console.log(POIlist);
-      
-      if (POIlist.length === 0) {
-        return "No search result found";
-      }
-
-      const routing = await getRoute(latitude ?? 38, longitude ?? 128, POIlist[0].lat, POIlist[0].lon);
-
-      const instructions = routing.paths[0].instructions.map((v) => `- ${v.text}`).join('\n');
-
-      console.log(instructions);
-
-      return `Route Instruction
-      ${instructions}`;
-    });
+    );
 
     console.log(client.tools);
   }, [cityID, stationID, latitude, longitude]);
