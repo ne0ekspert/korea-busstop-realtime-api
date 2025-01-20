@@ -4,10 +4,6 @@
 import axios from 'axios';
 import { LRUCache } from 'lru-cache';
 
-const cache = new LRUCache({
-  max: 100, // Maximum number of items in cache
-  ttl: 30 * 1000, // 30 seconds TTL
-});
 
 export interface estimatedBusTimeItem {
   arrprevstationcnt: number;
@@ -35,7 +31,16 @@ interface getEstimatedBusTimeResponse {
 }
 
 export async function getEstimatedBusTime(cityID: string, stopID: string): Promise<getEstimatedBusTimeResponse> {
+  const cache = new LRUCache({
+    max: 100, // Maximum number of items in cache
+    ttl: 30 * 1000, // 30 seconds TTL
+  });
+
   const cacheKey = `stopID-${stopID}`;
+
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey) as getEstimatedBusTimeResponse;
+  }
 
   // Fetch data if not in cache
   const request = await axios.get(
@@ -112,6 +117,61 @@ export async function getNearStations(lat: number, long: number): Promise<getNea
   );
 
   const data = request.data;
+
+  return data;
+}
+
+interface weatherForecastItem {
+  regId: string;
+  rnSt5Am: number
+}
+
+interface getWeatherForecastResponse {
+  response: {
+    header: {
+      resultCode: `${number}`;
+      resultMsg: string;
+    },
+    body: {
+      dataType: string,
+      items: {
+        item: weatherForecastItem[]
+      }
+    }
+  }
+}
+
+export async function getWeatherForecast(lat: number, long: number): Promise<getWeatherForecastResponse> {
+  const cache = new LRUCache({
+    max: 50,
+    ttl: 60 * 60 * 1000, // 1 hour TTL
+  });
+
+  const now = new Date();
+  let hour = now.getHours();
+  if (now.getMinutes() < 10) hour--;
+
+  const paddedHours = `${hour}`.padStart(2, '0')+'00';
+  const cacheKey = `forecast-${paddedHours}`;
+
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey) as getWeatherForecastResponse;
+  }
+
+  const request = await axios.get(
+    "http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst",
+    {
+      params: {
+        serviceKey: process.env.DATAGOKR_KEY,
+        nx: lat,
+        ny: long
+      }
+    }
+  );
+
+  const data: getWeatherForecastResponse = request.data;
+
+  cache.set(cacheKey, data);
 
   return data;
 }

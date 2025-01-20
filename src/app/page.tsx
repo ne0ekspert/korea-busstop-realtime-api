@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from 'next/navigation'
 import StationSelector from "./components/stationSelector";
 import AudioChat from "./components/audiochat";
-import { estimatedBusTimeItem, getEstimatedBusTime } from "./utils/datagokrRequest";
+import { estimatedBusTimeItem, getEstimatedBusTime, getWeatherForecast } from "./utils/datagokrRequest";
 import useConfig from "./context/useConfig";
 import useLog from "./context/useLog";
 
@@ -102,6 +102,37 @@ const BusInfoUI = () => {
   );
 };
 
+const WeatherUI = () => {
+  const { latitude, longitude } = useConfig();
+  const [ forecast, setForecast ] = useState();
+
+  useEffect(() => {
+    async function fetch() {
+      if (latitude && longitude) {
+        const apiResponse = await getWeatherForecast(latitude, longitude);
+
+        let data = apiResponse.response.body.items.item;
+
+        console.log(data);
+
+        setForecast(data);
+      }
+    }
+
+    fetch();
+
+    const weatherFetchInterval = setInterval(fetch, 3600 * 1000);
+
+    return () => {
+      clearInterval(weatherFetchInterval);
+    }
+  }, [latitude, longitude]);
+
+  return (
+    <div></div>
+  )
+};
+
 function LogConsole() {
   const { items } = useLog();
 
@@ -172,6 +203,7 @@ export default function Home() {
     <div className="flex h-screen overflow-hidden justify-center">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start h-full aspect-[9/16]">
         <BusInfoUI />
+        <WeatherUI />
       </main>
       {devMode === '1' &&
         <aside className="h-full grow">
