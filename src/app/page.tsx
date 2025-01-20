@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from 'next/navigation'
 import StationSelector from "./components/stationSelector";
 import AudioChat from "./components/audiochat";
 import { estimatedBusTimeItem, getEstimatedBusTime } from "./utils/getSttnAcctoArvlPrearngeInfoList";
@@ -120,7 +121,9 @@ function LogConsole() {
             <div className='speaker-content'>
               {/* tool response */}
               {conversationItem.type === 'function_call_output' && (
-                <div>{conversationItem.formatted.output?.replaceAll('\n', '<br>')}</div>
+                <div>{conversationItem.formatted.output
+                      ?.split('\\n')
+                      .map((v, i) => <p key={i}>{v}</p>)}</div>
               )}
               {/* tool call */}
               {!!conversationItem.formatted.tool && (
@@ -162,15 +165,20 @@ function LogConsole() {
 }
 
 export default function Home() {
+  const searchParams = useSearchParams()
+ 
+  const devMode = searchParams.get('dev')
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden justify-center">
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start h-full aspect-[9/16]">
         <BusInfoUI />
       </main>
-      <aside className="h-full grow">
-        <StationSelector />
-        <LogConsole />
-      </aside>
+      {devMode === '1' &&
+        <aside className="h-full grow">
+          <StationSelector />
+          <LogConsole />
+        </aside>
+      }
     </div>
   );
 }
