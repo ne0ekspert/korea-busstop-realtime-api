@@ -32,23 +32,21 @@ export async function requestOverpass(
 
   const { latitude, longitude } = useConfig.getState();
   const node = `node(around:${radius},${latitude},${longitude})`;
+  const area = `area(around:${radius},${latitude},${longitude})`;
 
   const filters: string[] = [];
 
   if (name) {
-    if (amenity) {
-      filters.push(`${node}[amenity=${amenity}][name=${name}];`);
-    }
-    if (tourism) {
-      filters.push(`${node}[tourism=${tourism}][name=${name}];`);
-    }
-  } else {
-    if (amenity) {
-      filters.push(`${node}[amenity=${amenity}];`);
-    }
-    if (tourism) {
-      filters.push(`${node}[tourism=${tourism}];`);
-    }
+    filters.push(`${node}[name~"${name}"];`);
+    filters.push(`${area}[name~"${name}"];`);
+  }
+  if (amenity) {
+    filters.push(`${node}[amenity=${amenity}];`);
+    filters.push(`${area}[amenity=${amenity}];`);
+  }
+  if (tourism) {
+    filters.push(`${node}[tourism=${tourism}];`);
+    filters.push(`${area}[tourism=${tourism}];`);
   }
 
   const query = `
@@ -56,6 +54,7 @@ export async function requestOverpass(
     (
       ${filters.join('')}
     );
+    (._;>;);
     out body;
   `;
 

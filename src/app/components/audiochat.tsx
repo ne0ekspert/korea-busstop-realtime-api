@@ -84,9 +84,8 @@ const AudioChat = () => {
     const client = clientRef.current;
 
     client.updateSession({
-instructions:
-  '당신은 실시간 버스 도착 정보를 제공하고 사용자 문의에 응답하는 버스 안내원입니다.'
-      ,
+      instructions:
+        '당신은 실시간 버스 도착 정보를 제공하고 사용자 문의에 응답하는 버스 안내원입니다. "이 정류장"은 당신이 근무하는 정류장을 의미합니다. 대답은 사용자가 사용한 언어를 사용합니다.',
       input_audio_transcription: { model: 'whisper-1' }
     });
   }, []);
@@ -105,7 +104,7 @@ instructions:
     client.addTool(
       {
         name: 'get_bus_arrival',
-        description: "Get buses' arrival time left",
+        description: "Get buses' arrival time left. When line number is not given, returns all line's estimated arrival time.",
         parameters: {
           type: 'object',
           properties: {
@@ -136,7 +135,9 @@ instructions:
             return "Provided line number does not pass this station.";
           }
         } else {
+          console.log(lines);
           result = lines.map((line) => `${line.routeno} - 약 ${Math.round(line.arrtime/60)}분 후 도착`);
+          return result.join('\n');
         }
       }
     );
@@ -180,7 +181,7 @@ instructions:
       }
     }, async ({ name, amenity, tourism }: { name: string, amenity: string, tourism: string }) => {
       if (!(name || amenity || tourism)) {
-        return "Name or amenity of POI is needed.";
+        return "Name or amenity of POI is required.";
       }
 
       const POIlist = await requestOverpass(name, amenity, tourism, 5000);
@@ -197,7 +198,7 @@ instructions:
 
       console.log(instructions);
 
-      return `Route to ${POIlist[0].tags.name}
+      return `Route Instruction
       ${instructions}`;
     });
 
