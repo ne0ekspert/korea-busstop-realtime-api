@@ -8,7 +8,7 @@ import { WavRecorder, WavStreamPlayer } from "../lib/wavtools";
 import useConfig from "../context/useConfig";
 import useLog from "../context/useLog";
 
-import { getEstimatedBusTime } from "../utils/datagokrRequest";
+import { getEstimatedBusTime, getWeatherForecast } from "../utils/datagokrRequest";
 import { requestOverpass } from "../utils/overpassRequest";
 import { getRoute } from "../utils/graphHopperRequest";
 
@@ -99,6 +99,18 @@ const AudioChat = () => {
     existingTools.map(tool => {
       client.removeTool(tool);
     });
+
+    client.addTool(
+      {
+        name: 'get_datetime',
+        description: "Get current date and time",
+        parameters: {}
+      }, async () => {
+        const date = new Date();
+
+        return date.toLocaleString();
+      }
+    )
 
     // 버스 도착 정보 툴
     client.addTool(
@@ -202,6 +214,33 @@ const AudioChat = () => {
         ${instructions}`;
       }
     );
+
+    client.addTool(
+      {
+        name: 'get_weather',
+        description: '오늘으로부터 5일 동안의 날씨를 가져옵니다.',
+        parameters: {
+          type: 'object',
+          properties: {}
+        }
+      }, async () => {
+        const weatherData = await getWeatherForecast(latitude ?? 38, longitude ?? 128);
+
+        const result = Object.entries(weatherData).map(([dateString, value]) => {
+          const year = parseInt(dateString.substring(0, 4), 10);
+          const month = parseInt(dateString.substring(4, 6), 10) - 1; // 월은 0부터 시작하므로 -1
+          const day = parseInt(dateString.substring(6, 8), 10);
+
+          const date = new Date(year, month, day);
+
+          const formattedDate = date.toLocaleDateString();
+
+          return `${formattedDate} - ${value.TMP}℃, 강수확률: ${value.POP}, 습도: ${value.REM}`;
+        }).join('\n');
+
+        return result;
+      }
+    )
 
     console.log(client.tools);
   }, [cityID, stationID, latitude, longitude]);
