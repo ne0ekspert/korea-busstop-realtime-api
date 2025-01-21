@@ -219,10 +219,7 @@ const AudioChat = () => {
       {
         name: 'get_weather',
         description: '오늘으로부터 5일 동안의 날씨를 가져옵니다.',
-        parameters: {
-          type: 'object',
-          properties: {}
-        }
+        parameters: {}
       }, async () => {
         const weatherData = await getWeatherForecast(latitude ?? 38, longitude ?? 128);
 
@@ -235,7 +232,7 @@ const AudioChat = () => {
 
           const formattedDate = date.toLocaleDateString();
 
-          return `${formattedDate} - ${value.TMP}℃, 강수확률: ${value.POP}, 습도: ${value.REM}`;
+          return `${formattedDate} - ${value.TMP}℃, 강수확률: ${value.POP}%, 습도: ${value.REH}%`;
         }).join('\n');
 
         return result;
