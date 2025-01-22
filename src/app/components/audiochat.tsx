@@ -33,7 +33,7 @@ const AudioChat = () => {
   const startTimeRef = useRef<string | null>(null);
 
   const { cityID, stationID, latitude, longitude } = useConfig();
-  const { setOpenWeather, setOpenRoute } = useModal();
+  const { setOpenWeather, setOpenRoute, setDestination } = useModal();
   const { setItems } = useLog();
 
   const connectConversation = useCallback(async () => {
@@ -205,6 +205,8 @@ const AudioChat = () => {
         if (POIlist.length === 0) {
           return "No search result found";
         }
+
+        setDestination(POIlist[0].lat, POIlist[0].lon);
 
         const routing = await getRoute(latitude ?? 38, longitude ?? 128, POIlist[0].lat, POIlist[0].lon);
 

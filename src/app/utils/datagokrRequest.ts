@@ -4,7 +4,6 @@
 import axios from 'axios';
 import { LRUCache } from 'lru-cache';
 
-
 export interface estimatedBusTimeItem {
   arrprevstationcnt: number;
   arrtime: number;

@@ -10,6 +10,7 @@ import useConfig from "./context/useConfig";
 import useLog from "./context/useLog";
 import { Sheet } from "react-modal-sheet";
 import useModal from "./context/useModal";
+import { getRoute, GraphHopperResponse } from "./utils/graphHopperRequest";
 
 const BusInfoUI = () => {
   const rowsPerPage = 5;
@@ -161,6 +162,42 @@ const WeatherUI = () => {
   )
 };
 
+const RouteUI = () => {
+  const { latitude: startLat, longitude: startLong } = useConfig();
+  const { latitude: endLat, longitude: endLong } = useModal();
+
+  const [ route, setRoute ] = useState<GraphHopperResponse | null>(null);
+
+  useEffect(() => {
+    async function fetch() {
+      if (startLat && startLong && endLat && endLong) {
+        const apiResponse = await getRoute(startLat, startLong, endLat, endLong);
+
+        console.log(apiResponse);
+
+        setRoute(apiResponse);
+      }
+    }
+
+    fetch();
+  }, [
+    startLat,
+    startLong,
+    endLat,
+    endLong
+  ]);
+
+  return (
+    <div>
+      {route?.paths[0].instructions.map((v, i) => (
+        <div key={i} className='text-xl text-black border-gray-600 border-b'>
+          {v.text}
+        </div>
+      ))}
+    </div>
+  );
+};
+
 function LogConsole() {
   const { items } = useLog();
 
@@ -259,7 +296,7 @@ function BottomSheet() {
         <Sheet.Container>
           <Sheet.Header />
           <Sheet.Content>
-
+            <RouteUI />
           </Sheet.Content>
         </Sheet.Container>
         <Sheet.Backdrop />
