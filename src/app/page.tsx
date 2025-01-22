@@ -8,6 +8,8 @@ import { estimatedBusTimeItem, getEstimatedBusTime, getWeatherForecast } from ".
 import type { getWeatherForecastResult } from "./utils/datagokrRequest";
 import useConfig from "./context/useConfig";
 import useLog from "./context/useLog";
+import { Sheet } from "react-modal-sheet";
+import useModal from "./context/useModal";
 
 const BusInfoUI = () => {
   const rowsPerPage = 5;
@@ -54,7 +56,7 @@ const BusInfoUI = () => {
   }, [totalPages]);
 
   return (
-    <div className="max-w-4xl mx-auto p-4">
+    <div id='busInfoUI' className="max-w-4xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-center mb-6">
         {arrivals.length > 0 ?
           arrivals[0].nodenm
@@ -222,10 +224,47 @@ function LogConsole() {
 }
 
 function BottomSheet() {
+  const {
+    openWeather,
+    openRoute,
+    setOpenWeather,
+    setOpenRoute
+  } = useModal();
+
+  const mountElement = document.getElementById('busInfoUI') ?? undefined;
+
   return (
-    <>
-      <WeatherUI />
-    </>
+    <div>
+      <button onClick={() => setOpenWeather(true)}>날씨 열기</button>
+      <Sheet
+        mountPoint={mountElement}
+        snapPoints={[-50, 0.5, 100, 0]}
+        initialSnap={1}
+        isOpen={openWeather}
+        onClose={() => setOpenWeather(false)}>
+        <Sheet.Container>
+          <Sheet.Header />
+          <Sheet.Content>
+            <WeatherUI />
+          </Sheet.Content>
+        </Sheet.Container>
+        <Sheet.Backdrop />
+      </Sheet>
+      <Sheet
+        mountPoint={mountElement}
+        snapPoints={[-50, 0.5, 100, 0]}
+        initialSnap={1}
+        isOpen={openRoute}
+        onClose={() => setOpenRoute(false)}>
+        <Sheet.Container>
+          <Sheet.Header />
+          <Sheet.Content>
+
+          </Sheet.Content>
+        </Sheet.Container>
+        <Sheet.Backdrop />
+      </Sheet>
+    </div>
   );
 }
 

@@ -11,6 +11,7 @@ import useLog from "../context/useLog";
 import { getEstimatedBusTime, getWeatherForecast } from "../utils/datagokrRequest";
 import { requestOverpass } from "../utils/overpassRequest";
 import { getRoute } from "../utils/graphHopperRequest";
+import useModal from "../context/useModal";
 
 const AudioChat = () => {
   // Configure the refs with the options you specified
@@ -32,6 +33,7 @@ const AudioChat = () => {
   const startTimeRef = useRef<string | null>(null);
 
   const { cityID, stationID, latitude, longitude } = useConfig();
+  const { setOpenWeather, setOpenRoute } = useModal();
   const { setItems } = useLog();
 
   const connectConversation = useCallback(async () => {
@@ -210,6 +212,8 @@ const AudioChat = () => {
 
         console.log(instructions);
 
+        setOpenRoute(true);
+
         return `Route Instruction
         ${instructions}`;
       }
@@ -235,12 +239,21 @@ const AudioChat = () => {
           return `${formattedDate} - ${value.TMP}℃, 강수확률: ${value.POP}%, 습도: ${value.REH}%`;
         }).join('\n');
 
+        setOpenWeather(true);
+
         return result;
       }
     )
 
     console.log(client.tools);
-  }, [cityID, stationID, latitude, longitude]);
+  }, [
+    cityID,
+    stationID,
+    latitude,
+    longitude,
+    setOpenRoute,
+    setOpenWeather
+  ]);
 
   useEffect(() => {
     const client = clientRef.current;
