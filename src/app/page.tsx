@@ -58,7 +58,7 @@ const BusInfoUI = () => {
 
   return (
     <div id='busInfoUI' className="max-w-4xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-6">
+      <h1 className="text-4xl font-bold text-center mb-6">
         {arrivals.length > 0 ?
           arrivals[0].nodenm
           :
@@ -66,7 +66,7 @@ const BusInfoUI = () => {
         }
       </h1>
       <div className="overflow-x-auto">
-        <table className="table-auto w-full border-collapse border border-gray-200">
+        <table className="table-auto w-full border-collapse border border-gray-200 text-2xl">
           <thead>
             <tr className="">
               <th className="border border-gray-300 px-4 py-2 text-left">노선 번호</th>
@@ -268,6 +268,31 @@ function BottomSheet() {
     setOpenRoute
   } = useModal();
 
+  let weatherTimeout: NodeJS.Timeout;
+  let routeTimeout: NodeJS.Timeout;
+
+  function onWeatherOpen() {
+    weatherTimeout = setTimeout(() => {
+      onWeatherClosed();
+    }, 30000);
+  }
+
+  function onWeatherClosed() {
+    setOpenWeather(false);
+    clearTimeout(weatherTimeout);
+  }
+
+  function onRouteOpen() {
+    routeTimeout = setTimeout(() => {
+      onRouteClosed();
+    }, 30000);
+  }
+
+  function onRouteClosed() {
+    setOpenRoute(false);
+    clearTimeout(routeTimeout);
+  }
+
   const mountElement = document.getElementById('busInfoUI') ?? undefined;
 
   return (
@@ -278,7 +303,8 @@ function BottomSheet() {
         snapPoints={[-50, 0.5, 100, 0]}
         initialSnap={1}
         isOpen={openWeather}
-        onClose={() => setOpenWeather(false)}>
+        onOpenEnd={onWeatherOpen}
+        onClose={onWeatherClosed}>
         <Sheet.Container>
           <Sheet.Header />
           <Sheet.Content>
@@ -292,7 +318,8 @@ function BottomSheet() {
         snapPoints={[-50, 0.5, 100, 0]}
         initialSnap={1}
         isOpen={openRoute}
-        onClose={() => setOpenRoute(false)}>
+        onOpenEnd={onRouteOpen}
+        onClose={onRouteClosed}>
         <Sheet.Container>
           <Sheet.Header />
           <Sheet.Content>

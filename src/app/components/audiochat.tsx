@@ -254,7 +254,8 @@ const AudioChat = () => {
     latitude,
     longitude,
     setOpenRoute,
-    setOpenWeather
+    setOpenWeather,
+    setDestination
   ]);
 
   useEffect(() => {
