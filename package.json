@@ -11,7 +11,7 @@
   "dependencies": {
     "@openai/realtime-api-beta": "github:openai/openai-realtime-api-beta",
     "@types/leaflet": "^1.9.15",
-    "axios": "^1.8.2",
+    "axios": "^1.12.0",
     "csv-parser": "^3.1.0",
     "fast-xml-parser": "^4.5.0",
     "iconv-lite": "^0.6.3",
